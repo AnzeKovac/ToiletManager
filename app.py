@@ -1,5 +1,6 @@
 import os
 
+from datetime import datetime
 from flask import Flask
 from flask import render_template
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -9,14 +10,14 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 db = SQLAlchemy(app)
 
 
-class User(db.Model):
+class ToiletTime(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80))
-    email = db.Column(db.String(120), unique=True)
+    length = db.Column(db.String(80))
+    datetime = db.Column(db.DateTime)
 
-    def __init__(self, name, email):
-        self.name = name
-        self.email = email
+    def __init__(self, length):
+        self.length = length
+        self.datetime = datetime.utcnow()
 
     def __repr__(self):
         return '<Name %r>' % self.name
@@ -25,6 +26,12 @@ class User(db.Model):
 @app.route('/')
 def home():
     return render_template('index.html')
+
+@app.route('/update', methods=['POST'])
+def update():
+    params = request.args
+    length = params['lenght'] if 'length' in parameters else 0
+
 
 
 @app.route('/robots.txt')
