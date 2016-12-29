@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 from flask import Flask
 from flask import render_template
+from flask import jsonify, request, url_for, Response, abort
 from flask.ext.sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -28,8 +29,8 @@ class ToiletStatus(db.Model):
     free = db.Column(db.String(80))
     datetime = db.Column(db.DateTime)
 
-    def __init__(self):
-        self.free = "Someone is using the toilet."
+    def __init__(self,message):
+        self.free = message
         self.datetime = datetime.utcnow()
 
     def __repr__(self):
@@ -38,22 +39,28 @@ class ToiletStatus(db.Model):
 
 @app.route('/')
 def home():
-    ToiletStatus.query.order_by('-id').first()
+    status = ToiletStatus.query.order_by('-id').first()
+
+    if(status):
+        return status.free
+    else:
+        return "DB is empty"
 
 
-@app.route('/freeUp', methods=['POST'])
-def freeUp():
-    params = request.args
-    length = params['lenght'] if 'length' in parameters else 0
+@app.route('/freeUp/<int:length>', methods=['GET'])
+def freeUp(length):
     toiletTime = ToiletTime(length)
     db.session.add(toiletTime)
+    db.session.add(ToiletStatus("Toilet is free and ready to use."))
     db.session.commit()
+    return "success"
 
 @app.route('/busy', methods=['GET'])
 def busy():
-    toiletStatus = ToiletStatus()
+    toiletStatus = ToiletStatus("Someone is using the toilet.")
     db.session.add(toiletStatus)
     db.session.commit()
+    return "success"
 
 
 
