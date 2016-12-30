@@ -24,3 +24,15 @@ class ToiletStatus(db.Model):
 
     def __repr__(self):
         return '<Name %r>' % self.id
+
+class QueueCandidate(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    returnUrl = db.Column(db.DateTime)
+    datetime = db.Column(db.DateTime)
+
+    def __init__(self,url):
+        self.free = url
+        self.datetime = datetime.utcnow()
+
+    def __repr__(self):
+        return '<returnUrl %r>' % self.returnUrl
