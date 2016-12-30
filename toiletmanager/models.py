@@ -27,11 +27,11 @@ class ToiletStatus(db.Model):
 
 class QueueCandidate(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    returnUrl = db.Column(db.DateTime)
+    return_url = db.Column(db.String(500))
     datetime = db.Column(db.DateTime)
 
     def __init__(self,url):
-        self.free = url
+        self.return_url = url
         self.datetime = datetime.utcnow()
 
     def __repr__(self):

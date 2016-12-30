@@ -8,7 +8,9 @@ from flask import render_template
 from flask import jsonify, request, url_for, Response, abort
 from flask.ext.sqlalchemy import SQLAlchemy
 from urllib.parse import urlencode
-from urllib.request import Request, urlopen
+import urllib.request
+import urllib
+import json
 
 @app.route('/')
 def index():
@@ -18,13 +20,14 @@ def index():
 def home():
     params = request.args
     returnUrl = params['response_url'] if 'response_url' in params else None
-    request = params
     status = ToiletStatus.query.order_by('-id').first()
 
     if(status):
-        if status.free == 'Someone is using the toilet.':
-            db.session.add(QueueCandidate(returnUrl))
-            db.session.commit()
+        if status.free == "Someone is using the toilet.I will remind you when it's free again.":
+            if(returnUrl):
+                return_url = urllib.request.unquote(returnUrl)
+                db.session.add(QueueCandidate(return_url))
+                db.session.commit()
         return status.free
     else:
         return "DB is empty"
@@ -35,22 +38,26 @@ def freeUp(length):
     toiletTime = ToiletTime(length)
     db.session.add(toiletTime)
     db.session.add(ToiletStatus("Toilet is free and ready to use."))
-    db.session.commit()
 
     #send notification to all in queue
     candidates = QueueCandidate.query.all()
+    QueueCandidate.query.delete()
+    db.session.commit()
     for candidate in candidates:
-        url = candidate.returnUrl # Set destination URL here
-        post_fields = {'response_type': 'ephemeral','text':'Toilet is free. Run run run!!!'}     # Set POST fields here
-
-        request = Request(url, urlencode(post_fields).encode())
-        json = urlopen(request).read().decode()
-        print(json)
+        url = candidate.return_url # Set destination URL here
+        if(url):
+            data = {'response_type': 'ephemeral','text':'Toilet is now free.'}
+            req = urllib.request.Request(url)
+            req.add_header('Content-Type', 'application/json; charset=utf-8')
+            jsondata = json.dumps(data)
+            jsondataasbytes = jsondata.encode('utf-8')   # needs to be bytes
+            req.add_header('Content-Length', len(jsondataasbytes))
+            urllib.request.urlopen(req, jsondataasbytes)
     return "success"
 
 @app.route('/busy', methods=['GET'])
 def busy():
-    toiletStatus = ToiletStatus("Someone is using the toilet.")
+    toiletStatus = ToiletStatus("Someone is using the toilet.I will remind you when it's free again.")
     db.session.add(toiletStatus)
     db.session.commit()
     return "success"
