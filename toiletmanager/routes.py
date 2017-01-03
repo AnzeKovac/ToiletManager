@@ -14,7 +14,7 @@ import json
 
 @app.route('/')
 def index():
-        return "Your token is shitty shitty. No API for you. Pitty pitty."
+        return "Servis is in maintenance."
 
 @app.route('/status', methods=['GET'])
 def home():
