@@ -36,3 +36,13 @@ class QueueCandidate(db.Model):
 
     def __repr__(self):
         return '<returnUrl %r>' % self.returnUrl
+
+class Menu(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    item = db.Column(db.String(255))
+
+    def __init__(self,item):
+        self.item = item
+
+    def __repr_(self):
+        return '<item %r>' % self.item

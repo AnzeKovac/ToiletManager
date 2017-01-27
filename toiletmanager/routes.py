@@ -1,4 +1,4 @@
-from .models import ToiletTime, ToiletStatus, QueueCandidate
+from .models import ToiletTime, ToiletStatus, QueueCandidate, Menu
 from flask import jsonify, request, url_for, Response, abort
 from . import app
 from . import db
@@ -8,9 +8,11 @@ from flask import render_template
 from flask import jsonify, request, url_for, Response, abort
 from flask.ext.sqlalchemy import SQLAlchemy
 from urllib.parse import urlencode
+from slacker import Slacker
 import urllib.request
 import urllib
 import json
+
 
 @app.route('/')
 def index():
@@ -62,6 +64,31 @@ def busy():
     db.session.commit()
     return "success"
 
+@app.route('/changeMenu', methods=['POST'])
+def menuChange():
+    currentMenu = Menu.query.delete()
+    if request.headers['Content-Type'] == 'application/json':
+        concat = ''
+        for item in request.json:
+            menuItem = Menu(item)
+            db.session.add(menuItem)
+    db.session.commit()
+    startProcess()
+    return concat
+
+@app.route('/start', methods=['GET'])
+def startProcess():
+    todayMenu = Menu.query.all()
+    message = '*Danes vam ponujamo:*\n'
+    for menuItem in todayMenu:
+        message+='• '+menuItem.item+'\n'
+    message += '\nDober tek!'
+    token = os.environ['TOKEN']
+    slack = Slacker(token)
+    slack.chat.post_message('#general', message,icon_emoji=':pizza:',username='Element')
+    return 'success'
+
+
 
 @app.route('/robots.txt')
 def robots():
@@ -74,6 +101,7 @@ def schema():
     db.create_all()
     db.session.commit()
     return 'success'
+
 
 
 
