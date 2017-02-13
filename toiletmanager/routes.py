@@ -29,12 +29,14 @@ def home():
     print(reservation)
     if(status):
         if status.free == "Someone is using the toilet.I will remind you when it's free again." or "Toiled is reservated. You are in the queue":
+            print('First')
             if(returnUrl):
                 return_url = urllib.request.unquote(returnUrl)
                 db.session.add(QueueCandidate(return_url))
                 db.session.commit()
                 return status.free
         elif reservation == "reserve":
+            print('Reservation')
             toiletStatus = ToiletStatus("Toiled is reservated. You are in the queue.")
             db.session.add(toiletStatus)
             db.session.commit()
