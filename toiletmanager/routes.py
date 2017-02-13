@@ -26,7 +26,7 @@ def home():
     returnUrl = params['response_url'] if 'response_url' in params else None
     reservation = params['text'] if 'text' in params else None
     status = ToiletStatus.query.order_by('-id').first()
-
+    print(reservation)
     if(status):
         if status.free == "Someone is using the toilet.I will remind you when it's free again." or "Toiled is reservated. You are in the queue":
             if(returnUrl):
@@ -34,7 +34,7 @@ def home():
                 db.session.add(QueueCandidate(return_url))
                 db.session.commit()
                 return status.free
-        elif reservation and reservation == "reserve":
+        elif reservation == "reserve":
             toiletStatus = ToiletStatus("Toiled is reservated. You are in the queue.")
             db.session.add(toiletStatus)
             db.session.commit()
