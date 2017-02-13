@@ -13,6 +13,7 @@ import urllib.request
 import urllib
 import json
 import os
+import time
 
 
 @app.route('/')
@@ -23,15 +24,30 @@ def index():
 def home():
     params = request.args
     returnUrl = params['response_url'] if 'response_url' in params else None
+    reservation = params['text'] if 'text' in params else None
     status = ToiletStatus.query.order_by('-id').first()
 
     if(status):
-        if status.free == "Someone is using the toilet.I will remind you when it's free again.":
+        if status.free == "Someone is using the toilet.I will remind you when it's free again." or "Toiled is reservated. You are in the queue":
             if(returnUrl):
                 return_url = urllib.request.unquote(returnUrl)
                 db.session.add(QueueCandidate(return_url))
                 db.session.commit()
-        return status.free
+        else if reservation and reservation == 'reserve' :
+            toiletStatus = ToiletStatus("Toiled is reservated. You are in the queue.")
+            db.session.add(toiletStatus)
+            db.session.commit()
+            #Hold reservation for 30 seconds
+            time.sleep(30);
+            status = ToiletStatus.query.order_by('-id').first()
+            if status.free == "Toilet is free and ready to use.":
+                toiletTime = ToiletTime(30)
+                db.session.add(toiletTime)
+                db.session.add(ToiletStatus("Toilet is free and ready to use."))
+                return 'Your reservation has ended.'
+            
+        else:
+            return status.free
     else:
         return "DB is empty"
 
@@ -42,20 +58,21 @@ def freeUp(length):
     db.session.add(toiletTime)
     db.session.add(ToiletStatus("Toilet is free and ready to use."))
 
-    #send notification to all in queue
-    candidates = QueueCandidate.query.all()
-    QueueCandidate.query.delete()
+    #send notification to first in queue
+    candidate = QueueCandidate.query.first()
+
+    url = candidate.return_url # Set destination URL here
+    if(url):
+        data = {'response_type': 'ephemeral','text':'Toilet is now free.'}
+        req = urllib.request.Request(url)
+        req.add_header('Content-Type', 'application/json; charset=utf-8')
+        jsondata = json.dumps(data)
+        jsondataasbytes = jsondata.encode('utf-8')   # needs to be bytes
+        req.add_header('Content-Length', len(jsondataasbytes))
+        urllib.request.urlopen(req, jsondataasbytes)
+     #Remove candidate
+    QueueCandidate.query.delete(candidates)
     db.session.commit()
-    for candidate in candidates:
-        url = candidate.return_url # Set destination URL here
-        if(url):
-            data = {'response_type': 'ephemeral','text':'Toilet is now free.'}
-            req = urllib.request.Request(url)
-            req.add_header('Content-Type', 'application/json; charset=utf-8')
-            jsondata = json.dumps(data)
-            jsondataasbytes = jsondata.encode('utf-8')   # needs to be bytes
-            req.add_header('Content-Length', len(jsondataasbytes))
-            urllib.request.urlopen(req, jsondataasbytes)
     return "success"
 
 @app.route('/busy', methods=['GET'])
