@@ -33,7 +33,7 @@ def home():
                 return_url = urllib.request.unquote(returnUrl)
                 db.session.add(QueueCandidate(return_url))
                 db.session.commit()
-        else if reservation and reservation == 'reserve' :
+        elif reservation and reservation == "reserve":
             toiletStatus = ToiletStatus("Toiled is reservated. You are in the queue.")
             db.session.add(toiletStatus)
             db.session.commit()
