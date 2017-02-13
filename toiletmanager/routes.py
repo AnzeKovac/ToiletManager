@@ -33,6 +33,7 @@ def home():
                 return_url = urllib.request.unquote(returnUrl)
                 db.session.add(QueueCandidate(return_url))
                 db.session.commit()
+                return status.free
         elif reservation and reservation == "reserve":
             toiletStatus = ToiletStatus("Toiled is reservated. You are in the queue.")
             db.session.add(toiletStatus)
@@ -45,6 +46,7 @@ def home():
                 db.session.add(toiletTime)
                 db.session.add(ToiletStatus("Toilet is free and ready to use."))
                 return 'Your reservation has ended.'
+            return 'Reservation was used'
             
         else:
             return status.free
