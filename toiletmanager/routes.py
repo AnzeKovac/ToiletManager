@@ -34,10 +34,10 @@ def home():
             db.session.add(toiletStatus)
             db.session.commit()
             #Hold reservation for 30 seconds
-            time.sleep(30);
+            time.sleep(20);
             status = ToiletStatus.query.order_by('-id').first()
             if status.free == "Toilet is free and ready to use.":
-                toiletTime = ToiletTime(30)
+                toiletTime = ToiletTime(20)
                 db.session.add(toiletTime)
                 db.session.add(ToiletStatus("Toilet is free and ready to use."))
                 return 'Your reservation has ended.'
