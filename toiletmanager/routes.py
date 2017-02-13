@@ -28,27 +28,29 @@ def home():
     status = ToiletStatus.query.order_by('-id').first()
     print(reservation)
     if(status):
-        if status.free == "Someone is using the toilet.I will remind you when it's free again." or "Toiled is reservated. You are in the queue":
+        if reservation == "reserve":
+        print('Reservation')
+        toiletStatus = ToiletStatus("Toiled is reservated. You are in the queue.")
+        db.session.add(toiletStatus)
+        db.session.commit()
+        #Hold reservation for 30 seconds
+        time.sleep(30);
+        status = ToiletStatus.query.order_by('-id').first()
+        if status.free == "Toilet is free and ready to use.":
+            toiletTime = ToiletTime(30)
+            db.session.add(toiletTime)
+            db.session.add(ToiletStatus("Toilet is free and ready to use."))
+            return 'Your reservation has ended.'
+        return 'Reservation was used'
+   
+        elif status.free == "Someone is using the toilet.I will remind you when it's free again." or "Toiled is reservated. You are in the queue":
             print('First')
             if(returnUrl):
                 return_url = urllib.request.unquote(returnUrl)
                 db.session.add(QueueCandidate(return_url))
                 db.session.commit()
                 return status.free
-        elif reservation == "reserve":
-            print('Reservation')
-            toiletStatus = ToiletStatus("Toiled is reservated. You are in the queue.")
-            db.session.add(toiletStatus)
-            db.session.commit()
-            #Hold reservation for 30 seconds
-            time.sleep(30);
-            status = ToiletStatus.query.order_by('-id').first()
-            if status.free == "Toilet is free and ready to use.":
-                toiletTime = ToiletTime(30)
-                db.session.add(toiletTime)
-                db.session.add(ToiletStatus("Toilet is free and ready to use."))
-                return 'Your reservation has ended.'
-            return 'Reservation was used'
+
             
         else:
             return status.free
