@@ -86,7 +86,7 @@ def startProcess():
     message += '\nDober tek!'
     token = os.environ['TOKEN']
     slack = Slacker(token)
-    slack.chat.post_message('#kosilo', message,icon_emoji=':pizza:',username='Element')
+    slack.chat.post_message('#kosilo', message,icon_emoji=':elclassico:',username='El Classico')
     return 'success'
 
 
